@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bài Mô Phỏng Đầu Tiên Cùng Webots</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Quicksand:wght@600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --steam-pink: #e81e62;
+            --steam-orange: #ff9800;
+            --steam-teal: #00bcd4;
+            --steam-green: #4caf50;
+            --steam-purple: #673ab7;
+            --steam-blue: #283593;
+            
+            --text-main: #334155;
+            --text-muted: #64748b;
+            --bg-body: #f8fafc;
+            --bg-card: #ffffff;
+            --border-light: #e2e8f0;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            color: var(--text-main);
+            background-color: var(--bg-body);
+            background-image: radial-gradient(#e2e8f0 1px, transparent 1px);
+            background-size: 20px 20px;
+            line-height: 1.7;
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3, h4 {
+            font-family: 'Quicksand', sans-serif;
+            color: var(--steam-blue);
+        }
+
+        /* ----- HIỆU ỨNG EMOJI LƠ LỬNG ----- */
+        .floating-emojis {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .emoji {
+            position: absolute;
+            font-size: 1.8rem;
+            opacity: 0.15;
+            animation: floatUp linear infinite;
+            bottom: -50px;
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(0) rotate(0deg) scale(0.8); opacity: 0; }
+            10% { opacity: 0.3; }
+            90% { opacity: 0.3; }
+            100% { transform: translateY(-110vh) rotate(360deg) scale(1.2); opacity: 0; }
+        }
+
+        .e1 { left: 10%; animation-duration: 15s; animation-delay: 0s; }
+        .e2 { left: 85%; animation-duration: 18s; animation-delay: 2s; font-size: 1.4rem; }
+        .e3 { left: 25%; animation-duration: 22s; animation-delay: 5s; font-size: 2rem; }
+        .e4 { left: 70%; animation-duration: 16s; animation-delay: 1s; }
+        .e5 { left: 50%; animation-duration: 25s; animation-delay: 4s; font-size: 1.5rem; }
+        .e6 { left: 40%; animation-duration: 19s; animation-delay: 7s; }
+        .e7 { left: 90%; animation-duration: 21s; animation-delay: 9s; font-size: 2.2rem; }
+
+        /* ----- GLASSMORPHISM HEADER ----- */
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 40px;
+            height: 70px;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-light);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        .logo-area img { height: 45px; width: auto; object-fit: contain; transition: transform 0.3s ease; }
+        .logo-area img:hover { transform: scale(1.05); }
+
+        .nav-links { display: flex; gap: 35px; height: 100%; }
+        .nav-links a {
+            text-decoration: none; color: var(--text-muted); font-weight: 600; font-size: 0.95rem;
+            display: flex; align-items: center; height: 100%; position: relative; transition: color 0.3s;
+        }
+        .nav-links a:hover { color: var(--steam-blue); }
+        .nav-links a::after {
+            content: ''; position: absolute; bottom: 0; left: 0; width: 0%; height: 3px;
+            background: linear-gradient(90deg, var(--steam-teal), var(--steam-blue));
+            transition: width 0.3s ease; border-radius: 3px 3px 0 0;
+        }
+        .nav-links a:hover::after, .nav-links a.active::after { width: 100%; }
+        .nav-links a.active { color: var(--steam-blue); }
+
+        .user-email {
+            color: var(--text-muted); font-size: 0.9rem; font-weight: 500;
+            background: #f1f5f9; padding: 8px 16px; border-radius: 20px;
+        }
+
+        /* ----- MAIN CONTAINER & CARDS ----- */
+        main { max-width: 850px; margin: 40px auto; padding: 0 20px; }
+
+        .hero-title {
+            text-align: center; font-size: 2.5rem; margin-bottom: 30px;
+            background: linear-gradient(90deg, var(--steam-pink), var(--steam-orange));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+
+        .card {
+            background-color: var(--bg-card); border-radius: 16px; padding: 30px; margin-bottom: 30px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
+            border: 1px solid var(--border-light); transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .card:hover { transform: translateY(-3px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
+
+        /* ----- HIỆU ỨNG SCROLL REVEAL ----- */
+        .reveal { opacity: 0; transform: translateY(40px); transition: all 0.8s ease-out; }
+        .reveal.active { opacity: 1; transform: translateY(0); }
+
+        /* Iframe Slide Container Style */
+        .slide-container {
+            width: 100%; aspect-ratio: 16 / 9; border-radius: 16px; overflow: hidden;
+            margin-bottom: 30px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border-light); background-color: #f1f5f9;
+        }
+        .slide-container iframe { width: 100%; height: 100%; border: none; display: block; }
+
+        /* Callouts */
+        .callout { padding: 16px 20px; border-radius: 12px; margin: 20px 0; display: flex; gap: 15px; font-size: 0.95rem; }
+        .callout-warning { background-color: #fffbeb; border-left: 5px solid var(--steam-orange); color: #b45309; }
+        .callout-tip { background-color: #f5f3ff; border-left: 5px solid var(--steam-purple); color: #5b21b6; }
+
+        /* Lists */
+        .step-list { list-style: none; padding: 0; }
+        .step-list > li { position: relative; padding-left: 40px; margin-bottom: 20px; }
+        .step-list > li::before {
+            content: "✓"; position: absolute; left: 0; top: 2px; width: 24px; height: 24px;
+            background: var(--steam-green); color: white; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold;
+        }
+        .bullet-list { padding-left: 20px; margin-bottom: 20px; }
+        .bullet-list li { margin-bottom: 10px; }
+
+        /* ----- HÌNH ẢNH ----- */
+        .content-img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.15);
+            margin: 20px auto 10px auto;
+            display: block;
+            border: 1px solid var(--border-light);
+        }
+        .figure-caption {
+            text-align: center;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-style: italic;
+            margin-bottom: 25px;
+            display: block;
+        }
+
+        /* ----- GIAO DIỆN CODE MAC STYLE ----- */
+        .code-window {
+            background-color: #1e293b; border-radius: 12px; overflow: hidden; margin: 20px 0;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2); border: 1px solid #334155;
+        }
+        .code-header {
+            background-color: #0f172a; padding: 10px 15px; display: flex;
+            align-items: center; justify-content: space-between; border-bottom: 1px solid #334155;
+        }
+        .mac-dots { display: flex; gap: 8px; }
+        .dot { width: 12px; height: 12px; border-radius: 50%; }
+        .dot.red { background-color: #ff5f56; }
+        .dot.yellow { background-color: #ffbd2e; }
+        .dot.green { background-color: #27c93f; }
+        .code-title { color: #94a3b8; font-size: 0.85rem; font-family: 'Inter', sans-serif; font-weight: 500; }
+        .copy-btn {
+            background: rgba(255,255,255,0.1); border: none; color: #cbd5e1;
+            padding: 4px 10px; border-radius: 6px; font-size: 0.8rem;
+            cursor: pointer; transition: background 0.2s, color 0.2s;
+            display: flex; align-items: center; gap: 5px; font-family: 'Inter', sans-serif;
+        }
+        .copy-btn:hover { background: rgba(255,255,255,0.2); color: #fff; }
+        .copy-btn.copied { background: var(--steam-green); color: white; }
+        .code-window pre {
+            margin: 0; padding: 20px; overflow-x: auto; background: transparent;
+            font-family: 'Fira Code', monospace; font-size: 0.9rem; line-height: 1.5; color: #f8fafc;
+        }
+        .keyword { color: #c678dd; } 
+        .function { color: #61afef; } 
+        .string { color: #98c379; } 
+        .comment { color: #7f848e; font-style: italic; } 
+        .macro { color: #d19a66; }
+
+        /* Footer */
+        .footer-card {
+            background: linear-gradient(135deg, var(--steam-blue), var(--steam-purple));
+            color: white; text-align: center; border-radius: 16px; padding: 40px 20px; margin-top: 50px;
+        }
+        .footer-card h2 { color: white; margin-top: 0; }
+        .footer-card p { color: #e2e8f0; }
+        .tag { display: inline-block; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-size: 0.85rem; margin: 5px; }
+    </style>
+</head>
+<body>
+
+    <div class="floating-emojis">
+        <div class="emoji e1">💖</div>
+        <div class="emoji e2">🎁</div>
+        <div class="emoji e3">✨</div>
+        <div class="emoji e4">😊</div>
+        <div class="emoji e5">🚀</div>
+        <div class="emoji e6">💡</div>
+        <div class="emoji e7">🤖</div>
+    </div>
+
+    <header>
+        <div class="logo-area">
+            <img src="logo_steam.png" alt="STEAM for Vietnam Logo">
+        </div>
+        <nav class="nav-links">
+            <a href="#">Scene</a>
+            <a href="#">Proto</a>
+            <a href="#">Animation</a>
+            <a href="#">Simulation</a>
+            <a href="#" class="active">Tutorial</a>
+        </nav>
+        <div class="user-email">Simulation2026@gmail.com</div>
+    </header>
+
+    <main>
+        <h1 class="hero-title reveal">Bài Mô Phỏng Đầu Tiên Cùng Webots</h1>
+        
+        <div class="slide-container reveal">
+            <iframe src="https://docs.google.com/presentation/d/e/2PACX-1vRFAgjWiCAP6A-dvrvn6kvJbPexLL7ICYUTpDrtdth3b2j8ea915CXXylLE0R08EQ/pubembed?start=false&loop=false&delayms=15000" frameborder="0" width="1920" height="1080" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true"></iframe>
+        </div>
+
+        <div class="card reveal">
+            <h2>🎯 Hoạt động lớp học</h2>
+            <p><strong>Đối tượng hướng tới:</strong> Học sinh có đam mê sau khóa học ROBO001 / sinh viên làm quen mô phỏng robot (nắm cơ bản về python/ c++). Yêu cầu các bạn tham khảo hướng dẫn cơ bản về cách sử dụng webots.</p>
+            <ul class="step-list">
+                <li>Làm quen Giao diện webots + Thao tác với chuột</li>
+                <li>Tạo thế giới mới cho riêng mình</li>
+                <li>Thêm robot e-puck hay bất kỳ robot nào em thích</li>
+                <li>Lập trình controller cơ bản</li>
+            </ul>
+        </div>
+
+        <div class="card reveal">
+            <h2>🌍 I. Tạo thế giới mới cho riêng mình</h2>
+            <h3>Khái niệm về world (thế giới mô phỏng)</h3>
+            <p>World (Thế giới) là một tệp tin chứa toàn bộ thông tin như: vị trí các vật thể, hình dáng của chúng, cách chúng tương tác với nhau, màu sắc của bầu trời, cũng như các định nghĩa về trọng lực, ma sát, khối lượng của vật thể... Nó xác định trạng thái ban đầu của một phiên mô phỏng.</p>
+            
+            <ul class="bullet-list">
+                <li><strong>Nodes (Nút):</strong> Các vật thể khác nhau trong thế giới được gọi là các Node.</li>
+                <li><strong>Scene Tree (Cây phối cảnh):</strong> Các Node được sắp xếp theo cấu trúc phân cấp. Một Node có thể chứa các Node con bên trong nó.</li>
+                <li><strong>Định dạng tệp:</strong> Thế giới được lưu trữ dưới dạng tệp <code>.wbt</code> (kế thừa từ ngôn ngữ VRML97). File <code>.wbt</code> hoàn toàn có thể mở và chỉnh sửa bằng code editor như VSCode, Notepad++, v.v.</li>
+            </ul>
+            
+            <img src="image6.png" class="content-img" alt="Mở file wbt bằng VS Code">
+            <span class="figure-caption">Hình minh họa: File .wbt hoàn toàn có thể mở bằng Text Editor (VS Code)</span>
+
+            <ul class="bullet-list">
+                <li><strong>Lưu trữ:</strong> Các tệp world phải được lưu trữ trực tiếp trong thư mục <code>worlds</code>.</li>
+            </ul>
+
+            <div class="callout callout-tip">
+                <div>
+                    <strong>💡 Bạn có biết:</strong> Mọi thứ ta thấy trên màn hình 3D (robot, vật thể, vị trí, kích thước) đều được mô tả bằng văn bản. Bạn hoàn toàn có thể copy/paste nhanh hoặc nhân bản robot chỉ bằng vài dòng code.
+                </div>
+            </div>
+
+            <h3>🛠️ Thực hành tạo và kiểm tra thế giới</h3>
+            <ul class="step-list">
+                <li><strong>Bước 1:</strong> Mở webots trên màn hình. (Tham khảo slide Webot Installation & Simple Usage Guide (2025).pptx).</li>
+                <li><strong>Bước 2:</strong> Nháy chọn <code>File</code> ở góc trái -> Nhấn <code>New</code> -> Chọn <code>New Project Directory</code>.</li>
+                <li><strong>Bước 3:</strong> Nhấn Next, tạo 1 folder mới ở ổ D (hoặc ổ E) để chứa dự án mới.</li>
+                <li><strong>Bước 4:</strong> Đặt tên cho project. Tick hết vào các ô, đặc biệt là ô “Add a rectangle arena”. Nhấn Finish.</li>
+            </ul>
+
+            <div class="callout callout-warning">
+                <div>
+                    <strong>⚠️ Lưu ý quan trọng:</strong> Không lưu project trong thư mục mặc định của Webots. Khi mở Sample World, luôn dùng <em>Save World As...</em> để lưu bản sao tránh làm hỏng file mẫu.
+                </div>
+            </div>
+
+            <p><strong>Kiểm tra và Điều chỉnh:</strong><br>
+            Trong <code>Scene Tree View</code>, nháy đúp vào Node <code>RectangleArena</code>. Mở trường <code>floorTileSize</code> và đặt thành <code>0.25 0.25</code> (ô gạch nhỏ lại). Chọn trường <code>wallHeight</code> thay đổi thành <code>0.05</code> (tường thấp xuống).</p>
+
+            <img src="image8.png" class="content-img" alt="Chỉnh sửa sân Arena">
+            <span class="figure-caption">Hình minh họa: Điều chỉnh kích thước sàn (floorTileSize)</span>
+        </div>
+
+        <div class="card reveal">
+            <h2>📦 Thực Hành Thả Vật Thể</h2>
+            <ul class="step-list">
+                <li><strong>Bước 1 - Thêm vật thể:</strong> Nhấp đúp <code>RectangleArena</code> -> Nhấn nút Add (+) -> Chọn <code>PROTO nodes / objects / factory / containers / WoodenBox(Solid)</code>.</li>
+                
+                <img src="image10.png" class="content-img" style="max-width: 80%;" alt="Tìm Node Wooden Box">
+                <span class="figure-caption">Hình minh họa: Tìm và thêm Node WoodenBox</span>
+
+                <li><strong>Bước 2 - Chỉnh kích thước & vị trí:</strong> Mở trường dữ liệu của WoodenBox, thay đổi <code>size</code> thành <code>0.1 0.1 0.1</code> và <code>translation</code> thành <code>0 0 0.05</code>.</li>
+                <li><strong>Bước 3 - Di chuyển & Sao chép:</strong> Nhấn giữ <code>Shift + chuột trái</code> để kéo thùng. Dùng <code>Ctrl+C, Ctrl+V</code> để sao chép.</li>
+                <li><strong>Bước 4 - Xoay:</strong> Dùng các mũi tên màu xanh dương để xoay thùng hoặc dùng <code>Shift + chuột phải</code>.</li>
+                <li><strong>Bước 5:</strong> Nhấn nút <strong>Save</strong> để lưu lại thế giới.</li>
+            </ul>
+
+            <img src="image4.png" class="content-img" style="max-width: 80%;" alt="Thả Wooden Box">
+            <span class="figure-caption">Hình minh họa: Thả WoodenBox thành công vào không gian mô phỏng</span>
+        </div>
+
+        <div class="card reveal">
+            <h2>🤖 II. Thêm Robot E-puck & Các Tác Dụng Vật Lý</h2>
+            <p>E-puck là một robot nhỏ sở hữu hệ thống bánh xe vi sai, 10 đèn LED và 8 cảm biến khoảng cách cùng một Camera.</p>
+            
+            <div class="callout callout-warning">
+                <div>
+                    <strong>⏳ Quy tắc thời gian:</strong> Luôn Pause -> Reset -> Modify -> Save. Đảm bảo đồng hồ hiển thị <code>0:00:00:000</code> trước khi chỉnh sửa thế giới để tránh tích tụ sai số.
+                </div>
+            </div>
+
+            <ul class="step-list">
+                <li><strong>Thêm robot:</strong> Chọn nút <code>WoodenBox</code> cuối cùng -> Add (+) -> <code>PROTO nodes / robots / gctronic / e-puck / E-puck (Robot)</code>. Điều chỉnh vị trí và nhấn Run. Robot sẽ tự tránh chướng ngại vật nhờ bộ điều khiển mặc định.</li>
+            </ul>
+            
+            <img src="image3.jpg" class="content-img" style="max-width: 80%;" alt="Robot E-puck">
+            <span class="figure-caption">Hình minh họa: Robot e-puck đã được đưa vào sân đấu</span>
+
+            <div class="callout callout-tip" style="flex-direction: column;">
+                <div><strong>💡 Tips:</strong> Bạn có thể tìm và thêm bất kỳ robot nào bạn thích trong mục <code>Nodes -> robots</code> nhé!</div>
+                <img src="image7.png" class="content-img" style="margin-top: 10px;" alt="Thêm Robot khác">
+            </div>
+
+            <ul class="step-list">
+                <li><strong>Thao tác Camera:</strong> Di chuyển cửa sổ camera màu đen, kéo góc để phóng to/thu nhỏ. Đóng bằng "x". Để hiện lại, vào menu <code>Overlays -> Hide All Camera Devices</code>.</li>
+            </ul>
+
+            <h3>Tác Dụng Vật Lý & Bước Thời Gian (TimeStep)</h3>
+            <p>Khi mô phỏng đang chạy, bạn có thể tác động vật lý (nếu vật có khối lượng):<br>
+            - <strong>Windows/Linux:</strong> Nhấn giữ <code>Alt + chuột trái + kéo chuột</code>.<br>
+            - <strong>Mac:</strong> Nhấn giữ <code>Option (⌥) + chuột trái + kéo chuột</code>.</p>
+            
+            <div class="callout callout-tip">
+                <div>
+                    <strong>Tăng độ chính xác mô phỏng:</strong> Tạm dừng và <code>Revert</code>. Mở nút <code>WorldInfo</code>, tìm <code>basicTimeStep</code> và đặt giá trị là <code>16</code> (miligiây). Sau đó Save lại.
+                </div>
+            </div>
+            
+            
+        </div>
+
+        <div class="card reveal">
+            <h2>💻 III. Tạo Một Bộ Điều Khiển (Controller)</h2>
+            <p>Controller là chương trình xác định hành vi của robot. Các ngôn ngữ như C, C++, Java cần được biên dịch (compile), trong khi Python, MATLAB là ngôn ngữ thông dịch.</p>
+            <ul class="bullet-list">
+                <li>Một controller có thể dùng cho nhiều robot cùng lúc.</li>
+                <li>Mỗi controller chạy trong một tiến trình (process) hoàn toàn độc lập với tệp <code>.wbt</code>.</li>
+            </ul>
+
+            <ul class="step-list">
+                <li><strong>Bước 1 - Tạo tệp:</strong> Vào <code>File / New / New Robot Controller…</code> Chọn C, đặt tên <code>epuck_go_forward</code>.</li>
+                <li><strong>Bước 2 - Mở Text Editor:</strong> Chỉnh sửa mã nguồn trực tiếp trên phần mềm Webots.</li>
+                
+                <img src="image9.png" class="content-img" alt="Trình soạn thảo mã nguồn Webots">
+                <span class="figure-caption">Hình minh họa: Trình soạn thảo mã nguồn (Text Editor) mặc định của Webots</span>
+                
+                <li><strong>Bước 3 - Liên kết Controller:</strong> Mở Node E-puck, tìm trường <code>controller</code>, chọn <code>Select...</code> và gắn <code>epuck_go_forward</code> vào.</li>
+            </ul>
+
+            <div class="callout callout-tip" style="flex-direction: column;">
+                <div><strong>💡 Tips - Đổi Controller:</strong> Dùng khi bạn muốn chuyển từ chế độ tự động sang điều khiển bằng tay, hoặc khi tạo lập một chương trình mới cho robot.</div>
+                <img src="image5.png" class="content-img" style="max-width: 70%; margin-top: 10px;" alt="Đổi Controller">
+            </div>
+
+            <p><strong>Đoạn mã cho robot tiến thẳng:</strong></p>
+
+            <div class="code-window">
+                <div class="code-header">
+                    <div class="mac-dots">
+                        <div class="dot red"></div>
+                        <div class="dot yellow"></div>
+                        <div class="dot green"></div>
+                    </div>
+                    <span class="code-title">epuck_go_forward.c</span>
+                    <button class="copy-btn" onclick="copyCode(this, 'code1')">📋 Copy Code</button>
+                </div>
+                <pre><code id="code1"><span class="macro">#include</span> &lt;webots/robot.h&gt;
+<span class="macro">#include</span> &lt;webots/motor.h&gt;
+
+<span class="macro">#define</span> TIME_STEP <span class="string">64</span>
+
+<span class="keyword">int</span> <span class="function">main</span>(<span class="keyword">int</span> argc, <span class="keyword">char</span> **argv) {
+    <span class="function">wb_robot_init</span>();
+
+    WbDeviceTag left_motor = <span class="function">wb_robot_get_device</span>(<span class="string">"left wheel motor"</span>);
+    WbDeviceTag right_motor = <span class="function">wb_robot_get_device</span>(<span class="string">"right wheel motor"</span>);
+    
+    <span class="function">wb_motor_set_position</span>(left_motor, <span class="string">10.0</span>);
+    <span class="function">wb_motor_set_position</span>(right_motor, <span class="string">10.0</span>);
+
+    <span class="keyword">while</span> (<span class="function">wb_robot_step</span>(TIME_STEP) != -1) { }
+    
+    <span class="function">wb_robot_cleanup</span>();
+    <span class="keyword">return</span> <span class="string">0</span>;
+}</code></pre>
+            </div>
+            
+            <p><strong>Thực thi:</strong> Lưu mã nguồn -> Nhấn <strong>Build</strong> -> <strong>Reset</strong> và chạy mô phỏng. (Lưu ý thư mục controller sẽ chứa file nhị phân trùng tên thư mục gốc, ví dụ: <code>epuck_go_forward.exe</code>).</p>
+        </div>
+
+        <div class="card reveal">
+            <h2>🚀 IV. Mở Rộng: Điều Khiển Tốc Độ</h2>
+            <p>Bánh xe robot thường được điều khiển bằng vận tốc thay vì vị trí. Để làm việc này, đặt vị trí mục tiêu là <code>INFINITY</code>:</p>
+
+            <div class="code-window">
+                <div class="code-header">
+                    <div class="mac-dots">
+                        <div class="dot red"></div>
+                        <div class="dot yellow"></div>
+                        <div class="dot green"></div>
+                    </div>
+                    <span class="code-title">epuck_speed_control.c</span>
+                    <button class="copy-btn" onclick="copyCode(this, 'code2')">📋 Copy Code</button>
+                </div>
+                <pre><code id="code2"><span class="macro">#include</span> &lt;webots/robot.h&gt;
+<span class="macro">#include</span> &lt;webots/motor.h&gt;
+
+<span class="macro">#define</span> TIME_STEP <span class="string">64</span>
+<span class="macro">#define</span> MAX_SPEED <span class="string">6.28</span>
+
+<span class="keyword">int</span> <span class="function">main</span>(<span class="keyword">int</span> argc, <span class="keyword">char</span> **argv) {
+    <span class="function">wb_robot_init</span>();
+
+    WbDeviceTag left_motor = <span class="function">wb_robot_get_device</span>(<span class="string">"left wheel motor"</span>);
+    WbDeviceTag right_motor = <span class="function">wb_robot_get_device</span>(<span class="string">"right wheel motor"</span>);
+    
+    <span class="comment">// Đặt vị trí là vô cực để bật chế độ speed control</span>
+    <span class="function">wb_motor_set_position</span>(left_motor, INFINITY);
+    <span class="function">wb_motor_set_position</span>(right_motor, INFINITY);
+
+    <span class="function">wb_motor_set_velocity</span>(left_motor, <span class="string">0.1</span> * MAX_SPEED);
+    <span class="function">wb_motor_set_velocity</span>(right_motor, <span class="string">0.1</span> * MAX_SPEED);
+
+    <span class="keyword">while</span> (<span class="function">wb_robot_step</span>(TIME_STEP) != -1) { }
+    
+    <span class="function">wb_robot_cleanup</span>();
+    <span class="keyword">return</span> <span class="string">0</span>;
+}</code></pre>
+            </div>
+        </div>
+
+        <div class="footer-card reveal">
+            <h2>🎉 TỔNG KẾT & CHÚC MỪNG BẠN!</h2>
+            <ul style="text-align: left; max-width: 600px; margin: 0 auto 20px auto; line-height: 1.8;">
+                <li>Một thế giới (world) được cấu tạo từ các nút (nodes) sắp xếp theo cấu trúc cây (lưu trong tệp .wbt).</li>
+                <li>Dự án chứa các chương trình điều khiển robot (controllers) để xác định hành vi.</li>
+                <li>Bộ điều khiển bằng C, C++, Java phải được biên dịch rõ ràng trước khi chạy.</li>
+                <li>Controller được liên kết qua trường 'controller' của nút Robot.</li>
+            </ul>
+            <div style="margin-top: 30px;">
+                <span class="tag">Team Simulation - Robotics</span></li>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Hiệu ứng cuộn (Scroll Reveal)
+        document.addEventListener("DOMContentLoaded", function() {
+            const reveals = document.querySelectorAll(".reveal");
+            const revealOptions = { threshold: 0.1, rootMargin: "0px 0px -50px 0px" };
+            
+            const revealOnScroll = new IntersectionObserver(function(entries, observer) {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add("active");
+                    }
+                });
+            }, revealOptions);
+
+            reveals.forEach(reveal => revealOnScroll.observe(reveal));
+        });
+
+        // Hàm Copy Code
+        function copyCode(button, codeId) {
+            const codeBlock = document.getElementById(codeId);
+            const textToCopy = codeBlock.innerText;
+
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                const originalText = button.innerHTML;
+                button.innerHTML = "✔️ Đã copy!";
+                button.classList.add("copied");
+
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                    button.classList.remove("copied");
+                }, 2000);
+            }).catch(err => {
+                console.error("Lỗi khi copy code: ", err);
+            });
+        }
+    </script>
+</body>
+</html>

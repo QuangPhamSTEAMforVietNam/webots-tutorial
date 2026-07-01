@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bài Mô Phỏng Đầu Tiên Cùng Webots</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Quicksand:wght@600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Lấy cảm hứng từ Logo STEAM */
+            --steam-pink: #e81e62;
+            --steam-orange: #ff9800;
+            --steam-teal: #00bcd4;
+            --steam-green: #4caf50;
+            --steam-purple: #673ab7;
+            --steam-blue: #283593;
+            
+            --text-main: #334155;
+            --text-muted: #64748b;
+            --bg-body: #f8fafc;
+            --bg-card: #ffffff;
+            --border-light: #e2e8f0;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            color: var(--text-main);
+            background-color: var(--bg-body);
+            background-image: radial-gradient(#e2e8f0 1px, transparent 1px);
+            background-size: 20px 20px;
+            line-height: 1.7;
+        }
+
+        h1, h2, h3, h4 {
+            font-family: 'Quicksand', sans-serif;
+            color: var(--steam-blue);
+        }
+
+        /* Glassmorphism Header */
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 40px;
+            height: 70px;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-light);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        .logo-area img {
+            height: 45px;
+            width: auto;
+            object-fit: contain;
+            transition: transform 0.3s ease;
+        }
+
+        .logo-area img:hover {
+            transform: scale(1.05);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 35px;
+            height: 100%;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            height: 100%;
+            position: relative;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: var(--steam-blue);
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0%;
+            height: 3px;
+            background: linear-gradient(90deg, var(--steam-teal), var(--steam-blue));
+            transition: width 0.3s ease;
+            border-radius: 3px 3px 0 0;
+        }
+
+        .nav-links a:hover::after, .nav-links a.active::after {
+            width: 100%;
+        }
+
+        .nav-links a.active {
+            color: var(--steam-blue);
+        }
+
+        .user-email {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            font-weight: 500;
+            background: #f1f5f9;
+            padding: 8px 16px;
+            border-radius: 20px;
+        }
+
+        /* Main Container & Cards */
+        main {
+            max-width: 850px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .hero-title {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 30px;
+            background: linear-gradient(90deg, var(--steam-pink), var(--steam-orange));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .card {
+            background-color: var(--bg-card);
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
+            border: 1px solid var(--border-light);
+            transition: transform 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+        }
+
+        /* Specific Notes & Callouts */
+        .callout {
+            padding: 16px 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            display: flex;
+            gap: 15px;
+            font-size: 0.95rem;
+        }
+
+        .callout-intro {
+            background-color: #f0fdfa;
+            border-left: 5px solid var(--steam-teal);
+            color: #0f766e;
+        }
+
+        .callout-warning {
+            background-color: #fffbeb;
+            border-left: 5px solid var(--steam-orange);
+            color: #b45309;
+        }
+
+        .callout-tip {
+            background-color: #f5f3ff;
+            border-left: 5px solid var(--steam-purple);
+            color: #5b21b6;
+        }
+
+        /* Step styling */
+        .step-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .step-list > li {
+            position: relative;
+            padding-left: 40px;
+            margin-bottom: 20px;
+        }
+
+        .step-list > li::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            top: 2px;
+            width: 24px;
+            height: 24px;
+            background: var(--steam-green);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        /* Code & Pre */
+        pre {
+            background-color: #1e293b;
+            color: #f8fafc;
+            padding: 20px;
+            border-radius: 12px;
+            overflow-x: auto;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.9rem;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        code {
+            font-family: monospace;
+            background-color: #f1f5f9;
+            color: var(--steam-pink);
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        /* Images placeholder */
+        .img-container {
+            width: 100%;
+            border-radius: 12px;
+            overflow: hidden;
+            margin: 20px 0;
+            border: 1px solid var(--border-light);
+            background: #e2e8f0;
+            text-align: center;
+            color: var(--text-muted);
+            padding: 40px 0;
+            font-style: italic;
+        }
+
+        /* Footer */
+        .footer-card {
+            background: linear-gradient(135deg, var(--steam-blue), var(--steam-purple));
+            color: white;
+            text-align: center;
+            border-radius: 16px;
+            padding: 40px 20px;
+            margin-top: 50px;
+        }
+
+        .footer-card h2 {
+            color: white;
+            margin-top: 0;
+        }
+
+        .footer-card p {
+            color: #e2e8f0;
+        }
+
+        .tag {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            margin: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo-area">
+            <img src="logo_steam.png" alt="STEAM for Vietnam Logo">
+        </div>
+        <nav class="nav-links">
+            <a href="#">Scene</a>
+            <a href="#">Proto</a>
+            <a href="#">Animation</a>
+            <a href="#">Simulation</a>
+            <a href="#" class="active">Tutorial</a>
+        </nav>
+        <div class="user-email">Teacher-Suong2026@gmail.com</div>
+    </header>
+
+    <main>
+        <h1 class="hero-title">Bài Mô Phỏng Đầu Tiên Cùng Webots</h1>
+        
+        <div class="callout callout-intro">
+            <div>
+                <strong>👋 Lời Giới Thiệu:</strong> Chào bạn, mình là Hoàng Huy - thành viên của team Simulation. Đây là tài liệu mình soạn để hỗ trợ các bạn trong việc thành thạo nền tảng Webots. Cảm ơn các bạn đã xem qua, mình hi vọng nhận được những đóng góp chân thành từ người xem thông qua các kênh liên hệ ở cuối file này !!
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>🎯 Hoạt động lớp học</h2>
+            <p><strong>Đối tượng hướng tới:</strong> Học sinh có đam mê sau khóa học ROBO001 / sinh viên làm quen mô phỏng robot (nắm cơ bản về python/ c++).</p>
+            <ul class="step-list">
+                <li>Làm quen Giao diện webots + Thao tác với chuột</li>
+                <li>Tạo thế giới mới cho riêng mình</li>
+                <li>Thêm robot e-puck hay bất kỳ robot nào em thích (vui@@)</li>
+                <li>Lập trình controller cơ bản</li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h2>🌍 Tạo thế giới mới cho riêng mình</h2>
+            <h3>Khái niệm về world (thế giới mô phỏng)</h3>
+            <p>World (Thế giới) là một tệp tin chứa toàn bộ thông tin như: vị trí các vật thể, hình dáng của chúng, cách chúng tương tác với nhau, màu sắc của bầu trời, cũng như các định nghĩa về trọng lực, ma sát, khối lượng của vật thể... Nó xác định trạng thái ban đầu của một phiên mô phỏng.</p>
+            
+            <div class="callout callout-tip">
+                <div>
+                    <strong>💡 Bạn có biết:</strong> Mọi thứ ta thấy trên màn hình 3D (robot, vật thể, vị trí, kích thước) đều được mô tả bằng văn bản. Bạn hoàn toàn có thể copy/paste nhanh hoặc nhân bản robot chỉ bằng vài dòng code. File <code>.wbt</code> có thể mở bằng VS Code, Notepad++.
+                </div>
+            </div>
+
+            <h3>🛠️ Thực hành tạo thế giới</h3>
+            <ul class="step-list">
+                <li><strong>Bước 1:</strong> Mở webots trên màn hình. (Lưu ý: Bạn nào chưa tải webots, hãy tham khảo slide <em>Webot Installation & Simple Usage Guide (2025)</em>).</li>
+                <li><strong>Bước 2:</strong> Nháy chọn nút <code>File</code> ở góc trái -> Nhấn <code>New</code> -> Chọn <code>New Project Directory</code>.</li>
+                <li><strong>Bước 3:</strong> Nhấn Next, tạo 1 folder mới ở ổ D (hoặc ổ E) để chứa dự án mới thay vì chọn đường dẫn đề xuất.</li>
+                <li><strong>Bước 4:</strong> Đặt tên cho project mới. Tick hết vào các ô, đặc biệt là ô “Add a rectangle arena”. Nhấn Finish.</li>
+            </ul>
+
+            <div class="callout callout-warning">
+                <div>
+                    <strong>⚠️ Lưu ý:</strong> Không lưu project trong thư mục mặc định của Webots. Khi mở Sample World, luôn sử dụng chức năng <em>Save World As...</em> để tránh làm hỏng các file mẫu.
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>📦 Thực Hành Thả Vật Thể</h2>
+            <p>Trong giao diện của Scene Tree, các trường dữ liệu được biểu diễn dưới nhiều màu khác nhau (phụ thuộc vào màu nền của chúng) nếu như chúng khác với các giá trị mặc định ban đầu.</p>
+            
+            <ul class="step-list">
+                <li><strong>Bước 1 - Thêm vật thể:</strong> Nhấp đúp <code>RectangleArena</code> -> Nhấn nút Add (+) -> Chọn <code>PROTO nodes / objects / factory / containers / WoodenBox(Solid)</code>.</li>
+                <li><strong>Bước 2 - Chỉnh kích thước & vị trí:</strong> Nhấp đúp vào WoodenBox, thay đổi <code>size</code> thành <code>0.1 0.1 0.1</code> và <code>translation</code> thành <code>0 0 0.05</code>.</li>
+                <li><strong>Bước 3 - Di chuyển & Sao chép:</strong> Nhấn giữ <code>Shift + chuột trái</code> để kéo thùng. Dùng <code>Ctrl+C, Ctrl+V</code> để sao chép.</li>
+                <li><strong>Bước 4 - Xoay:</strong> Dùng các mũi tên màu xanh dương để xoay thùng quanh trục thẳng đứng.</li>
+            </ul>
+            <div class="img-container">[ Chèn hình ảnh minh họa bố trí các thùng gỗ vào đây ]</div>
+        </div>
+
+        <div class="card">
+            <h2>🤖 Thêm Robot E-puck & Tạo Controller</h2>
+            <p>E-puck là một robot nhỏ sở hữu hệ thống bánh xe vi sai, đèn LED và cảm biến khoảng cách. Để thêm robot, tìm nút <code>WoodenBox</code> cuối cùng -> Add -> <code>PROTO nodes / robots / gctronic / e-puck / E-puck (Robot)</code>.</p>
+            
+            <div class="callout callout-warning">
+                <div>
+                    <strong>⏳ Quy tắc thời gian:</strong> Luôn Pause -> Reset -> Modify -> Save. Đảm bảo đồng hồ hiển thị <code>0:00:00:000</code> trước khi chỉnh sửa thế giới để tránh sai số.
+                </div>
+            </div>
+
+            <h3>💻 Lập trình Controller</h3>
+            <p>Vào menu <code>File / New / New Robot Controller…</code> -> Chọn ngôn ngữ C -> Đặt tên <code>epuck_go_forward</code>. Sau đó liên kết nó vào trường <code>controller</code> của E-puck trong Scene Tree.</p>
+
+<pre><code>#include &lt;webots/robot.h&gt;
+#include &lt;webots/motor.h&gt;
+
+#define TIME_STEP 64
+#define MAX_SPEED 6.28
+
+int main(int argc, char **argv) {
+    wb_robot_init();
+
+    WbDeviceTag left_motor = wb_robot_get_device("left wheel motor");
+    WbDeviceTag right_motor = wb_robot_get_device("right wheel motor");
+    
+    // speed control
+    wb_motor_set_position(left_motor, INFINITY);
+    wb_motor_set_position(right_motor, INFINITY);
+
+    wb_motor_set_velocity(left_motor, 0.1 * MAX_SPEED);
+    wb_motor_set_velocity(right_motor, 0.1 * MAX_SPEED);
+
+    while (wb_robot_step(TIME_STEP) != -1) { }
+    
+    wb_robot_cleanup();
+    return 0;
+}
+</code></pre>
+            <p>Sau khi lưu mã nguồn, nhấn <strong>Build</strong> (biểu tượng bánh răng). Cuối cùng nhấn <strong>Reset</strong> và chạy mô phỏng. Robot của bạn sẽ di chuyển liên tục!</p>
+        </div>
+
+        <div class="footer-card">
+            <h2>🎉 CHÚC MỪNG BẠN!</h2>
+            <p>Bạn đã hoàn thành rất xuất sắc các bước cơ bản trong bài mô phỏng đầu tiên !!! 🍀</p>
+            <div style="margin-top: 20px;">
+                <span class="tag">Team Simulation - Robotics</span>
+                <span class="tag">Người thực hiện: Phạm Hoàng Huy</span>
+                <span class="tag">Email: hoanghuy.pham@steamforvietnam.org</span>
+                <span class="tag">Zalo: 0363160442</span>
+            </div>
+        </div>
+    </main>
+
+</body>
+</html>
